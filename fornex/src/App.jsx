@@ -1,50 +1,28 @@
 import { useState } from 'react'
 
-import Dashboard from './pages/Dashboard'
 import Comprador from './components/Comprador'
 import Fornecedor from './components/Fornecedor'
 import Propostas from './pages/Propostas'
 
 export default function App() {
 
-  // CONTROLE DAS TELAS
-  const [view, setView] = useState('dashboard')
+  const [view, setView] = useState('comprador')
 
-  // =========================================
-  // RENDERIZAÇÃO DAS TELAS
-  // =========================================
   const renderPage = () => {
 
     switch (view) {
 
-      // DASHBOARD PRINCIPAL
-      case 'dashboard':
-        return (
-          <Dashboard mudarTela={setView} />
-        )
-
-      // TELA DE CRIAR LEILÃO
       case 'comprador':
-        return (
-          <Comprador mudarTela={setView} />
-        )
+        return <Comprador mudarTela={setView} />
 
-      // TELA DO FORNECEDOR
       case 'fornecedor':
-        return (
-          <Fornecedor />
-        )
+        return <Fornecedor />
 
-      // TELA DE PROPOSTAS
       case 'propostas':
-        return (
-          <Propostas />
-        )
+        return <Propostas />
 
       default:
-        return (
-          <Dashboard mudarTela={setView} />
-        )
+        return <Dashboard mudarTela={setView} />
     }
   }
 
@@ -63,50 +41,23 @@ export default function App() {
 
         <div className="space-x-4">
 
-          {/* DASHBOARD */}
-          <button
-            onClick={() => setView('dashboard')}
-            className={`px-4 py-2 rounded font-semibold transition ${
-              view === 'dashboard'
-                ? 'bg-blue-600'
-                : 'hover:bg-blue-800'
-            }`}
-          >
-            Dashboard
-          </button>
-
-          {/* ÁREA COMPRADOR */}
           <button
             onClick={() => setView('comprador')}
-            className={`px-4 py-2 rounded font-semibold transition ${
-              view === 'comprador'
-                ? 'bg-blue-600'
-                : 'hover:bg-blue-800'
-            }`}
+            className="px-4 py-2 rounded font-semibold hover:bg-blue-800"
           >
             Criar Leilão
           </button>
 
-          {/* FORNECEDOR */}
           <button
             onClick={() => setView('fornecedor')}
-            className={`px-4 py-2 rounded font-semibold transition ${
-              view === 'fornecedor'
-                ? 'bg-blue-600'
-                : 'hover:bg-blue-800'
-            }`}
+            className="px-4 py-2 rounded font-semibold hover:bg-blue-800"
           >
             Área do Fornecedor
           </button>
 
-          {/* PROPOSTAS */}
           <button
             onClick={() => setView('propostas')}
-            className={`px-4 py-2 rounded font-semibold transition ${
-              view === 'propostas'
-                ? 'bg-blue-600'
-                : 'hover:bg-blue-800'
-            }`}
+            className="px-4 py-2 rounded font-semibold hover:bg-blue-800"
           >
             Propostas
           </button>
