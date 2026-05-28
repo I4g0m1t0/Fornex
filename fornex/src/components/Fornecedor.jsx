@@ -7,7 +7,7 @@ export default function Fornecedor() {
   const [proposta, setProposta] = useState({ preco_total: '', validade_proposta: '', fornecedor_nome: '', fornecedor_contato: '' })
 
   const buscarPedidos = async () => {
-    const { data } = await supabase.from('pedidos').select('*').eq('status', 'Aberto')
+    const { data } = await supabase.from('pedidos').select('*').eq('status', 'Aberto').order('created_at', { ascending: false })
     setPedidos(data || [])
   }
 
@@ -15,8 +15,9 @@ export default function Fornecedor() {
     e.preventDefault()
     const payload = { ...proposta, pedido_id: pedidoSelecionado.id }
     await supabase.from('propostas').insert([payload])
-    alert(`LANCE ENVIADO COM SUCESSO! \n\nVocê gastou 1 crédito. \nContato do Comprador liberado: ${pedidoSelecionado.comprador_contato}`)
+    alert(`LANCE ENVIADO! \n\nContato liberado: ${pedidoSelecionado.comprador_contato}`)
     setPedidoSelecionado(null)
+    buscarPedidos()
   }
 
   useEffect(() => {
@@ -24,58 +25,101 @@ export default function Fornecedor() {
   }, [])
 
   return (
-    <div className="max-w-6xl mx-auto grid grid-cols-3 gap-8">
-      <div className="col-span-2 space-y-4">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Mural de Leilões Ativos</h2>
-        {pedidos.length === 0 ? (
-          <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
-            <p className="text-yellow-700 font-semibold">Nenhum leilão ativo.</p>
-          </div>
-        ) : null}
-        {pedidos.map(p => (
-          <div key={p.id} onClick={() => setPedidoSelecionado(p)} className="p-6 bg-white rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:border-blue-500 hover:shadow-md transition group">
-            <div className="flex justify-between items-start">
-              <h3 className="font-bold text-xl text-gray-800 group-hover:text-blue-600">{p.titulo}</h3>
-              <span className="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full font-bold uppercase animate-pulse">Aberto para Lances</span>
-            </div>
-            <div className="flex gap-4 mt-3 text-sm text-gray-600">
-              <p>📦 <b>Qtd:</b> {p.quantidade}</p>
-              <p>💳 <b>Pagamento:</b> {p.condicao_pagamento}</p>
+    <div className="w-full px-4">
+      {!pedidoSelecionado ? (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+            <h2 className="text-2xl font-bold text-gray-800">Leilões Disponíveis</h2>
+            <div className="flex items-center gap-2">
+               <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+               </span>
+               <span className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{pedidos.length} ativos</span>
             </div>
           </div>
-        ))}
-      </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 h-fit sticky top-8">
-        {pedidoSelecionado ? (
-          <form onSubmit={enviarProposta} className="space-y-4">
-            <h3 className="font-bold text-gray-800 text-lg border-b pb-3 mb-4">
-              Seu Lance para:<br/><span className="text-blue-600">{pedidoSelecionado.titulo}</span>
-            </h3>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Valor Total da Sua Proposta (R$)</label>
-              <input type="number" required placeholder="0.00" className="w-full p-3 text-lg font-bold bg-green-50 border border-green-300 rounded-lg text-green-800" onChange={e => setProposta({...proposta, preco_total: e.target.value})} />
+          {/* GRID QUE USA A TELA INTEIRA */}
+          {/* sm: 1 col | md: 2 cols | lg: 3 cols | xl: 4 cols */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {pedidos.map(p => (
+              <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full hover:shadow-xl hover:border-blue-300 transition-all duration-300 group">
+                <div className="p-5 flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-bold uppercase tracking-tight">
+                      {p.categoria}
+                    </span>
+                    <span className="text-xs text-gray-400 font-medium">{new Date(p.created_at).toLocaleDateString()}</span>
+                  </div>
+                  
+                  <h3 className="font-bold text-lg text-gray-800 mb-3 leading-tight group-hover:text-blue-600 transition-colors">
+                    {p.titulo}
+                  </h3>
+                  
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Quantidade:</span>
+                      <span className="font-bold text-gray-700">{p.quantidade}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Pagamento:</span>
+                      <span className="font-bold text-gray-700">{p.condicao_pagamento}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 border-t border-gray-100 rounded-b-2xl">
+                  <button 
+                    onClick={() => setPedidoSelecionado(p)} 
+                    className="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm"
+                  >
+                    Dar Lance
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {pedidos.length === 0 && (
+            <div className="py-20 text-center">
+              <p className="text-gray-400 text-lg italic">Aguardando novas demandas no mercado...</p>
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Validade deste Preço</label>
-              <input type="date" required className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" onChange={e => setProposta({...proposta, validade_proposta: e.target.value})} />
+          )}
+        </div>
+      ) : (
+        /* FORMULÁRIO DE LANCE (CENTRALIZADO) */
+        <div className="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 mt-4">
+          <button onClick={() => setPedidoSelecionado(null)} className="text-blue-600 font-bold text-sm mb-6 flex items-center gap-2 hover:underline">
+            ← Voltar ao Mural
+          </button>
+
+          <form onSubmit={enviarProposta} className="space-y-6">
+            <div className="border-l-4 border-blue-600 pl-4 py-1">
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Lance para:</p>
+              <h3 className="font-black text-2xl text-gray-800">{pedidoSelecionado.titulo}</h3>
             </div>
-            <div className="pt-4 border-t mt-4">
-              <p className="text-xs text-gray-500 mb-2 uppercase font-bold">Seus Dados de Retorno</p>
-              <input type="text" required placeholder="Nome da sua Empresa" className="w-full p-3 bg-gray-50 border rounded-lg mb-3" onChange={e => setProposta({...proposta, fornecedor_nome: e.target.value})} />
-              <input type="text" required placeholder="Seu WhatsApp" className="w-full p-3 bg-gray-50 border rounded-lg" onChange={e => setProposta({...proposta, fornecedor_contato: e.target.value})} />
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-gray-500 uppercase mb-2">Seu Preço Total (R$)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-green-600">R$</span>
+                  <input type="number" step="0.01" required className="w-full p-4 pl-12 text-3xl font-black bg-green-50 border-2 border-green-200 rounded-2xl text-green-700 focus:ring-4 focus:ring-green-100 outline-none transition-all" placeholder="0,00" onChange={e => setProposta({...proposta, preco_total: e.target.value})} />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                 <input type="text" required placeholder="Nome da sua Empresa" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" onChange={e => setProposta({...proposta, fornecedor_nome: e.target.value})} />
+                 <input type="text" required placeholder="Seu WhatsApp" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" onChange={e => setProposta({...proposta, fornecedor_contato: e.target.value})} />
+              </div>
             </div>
-            <button type="submit" className="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 shadow-md mt-4">
-              Enviar Lance (1 Crédito)
+            
+            <button type="submit" className="w-full bg-blue-600 text-white font-black text-xl py-5 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95">
+              CONFIRMAR LANCE
             </button>
           </form>
-        ) : (
-          <div className="text-center py-12">
-            <span className="text-5xl">⚖️</span>
-            <p className="text-gray-500 mt-4 font-medium">Selecione uma demanda para enviar seu lance.</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
